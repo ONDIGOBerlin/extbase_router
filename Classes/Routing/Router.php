@@ -151,11 +151,11 @@ class Router implements SingletonInterface {
         $pattern = str_replace('/', '\/', $url);
         $pattern = preg_replace_callback('/(:\w+)/i', function($matches) {
             $parameterName = ltrim($matches[0],':');
-            return '(?P<'.$parameterName.'>\w+)';
+            return '(?P<'.$parameterName.'>[a-zA-Z_\-0-9]+)';
         }, $pattern);
 
         // add optional trailing slash matching
-        $pattern = $pattern . '\/?';
+        $pattern = $pattern . '\/?$';
 
         // add regex delimiters
         $pattern = '/^' . $pattern . '/';
