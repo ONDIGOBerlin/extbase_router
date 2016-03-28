@@ -1,0 +1,23 @@
+{
+    "name": "ondigo/extbase_router",
+    "description": "Extbase extension to route requests directly to controller actions",
+    "type": "typo3-cms-extension",
+    "license": "GPLv3",
+    "version": "0.1.0",
+    "keywords": ["php", "typo3", "extbase", "routing"],
+    "authors": [
+        {
+            "name": "Timo Flöttmann",
+            "email": "timo.floettmann@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Ondigo\\ExtbaseRouter\\": "Classes/"
+        }
+    },
+    "require-dev": {
+        "typo3/cms": "^7.6",
+        "phpunit/phpunit": "*"
+    }
+}
