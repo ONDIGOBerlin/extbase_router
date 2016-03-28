@@ -2,7 +2,6 @@
 namespace Ondigo\ExtbaseRouter\Routing;
 
 use TYPO3\CMS\Core\SingletonInterface;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class Router implements SingletonInterface {
 
@@ -86,17 +85,11 @@ class Router implements SingletonInterface {
      * @return $this
      */
     public function register($url, $method, $controller, $action) {
-        list($vendorName, $extensionName, , $controllerName) = explode('\\', $controller);
-
         $this->routes[] = [
             'pattern' => $this->transform($url),
             'method' => $method,
-            'handler' => [
-                'vendorName' => $vendorName,
-                'extensionName' => GeneralUtility::camelCaseToLowerCaseUnderscored($extensionName),
-                'controllerName' => substr($controllerName, 0, -10), // remove the 'Controller' from the end of the class name
-                'action' => $action
-            ]
+            'controller' => $controller,
+            'action' => $action
         ];
 
         return $this;
@@ -123,7 +116,6 @@ class Router implements SingletonInterface {
     }
 
     public function route($route) {
-        $handler = $route['handler'];
         $arguments = $route['parameters'];
 
         /** @var \TYPO3\CMS\Extbase\Mvc\Web\Request $request */
@@ -135,10 +127,8 @@ class Router implements SingletonInterface {
         /** @var \TYPO3\CMS\Extbase\Mvc\Dispatcher $dispatcher */
         $dispatcher = $this->objectManager->get('TYPO3\CMS\Extbase\Mvc\Dispatcher');
 
-        $request->setControllerVendorName($handler['vendorName']);
-        $request->setControllerExtensionName($handler['extensionName']);
-        $request->setControllerName($handler['controllerName']);
-        $request->setControllerActionName($handler['action']);
+        $request->setControllerObjectName($route['controller']);
+        $request->setControllerActionName($route['action']);
 
         $request->setArguments($arguments);
 
