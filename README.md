@@ -10,7 +10,9 @@ Usage
 In order to have routes registered before any matching takes place, route configuration should happen in the ext_localconf.php of your extension.
 
 ```php
-/** @var \Ondigo\ExtbaseRouter\Routing\Router $router */
+/** 
+ * @var \Ondigo\ExtbaseRouter\Routing\Router $router 
+ */
 $router = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\Ondigo\ExtbaseRouter\Routing\Router::class);
     
 $router->get('/api/resource', \Vendor\Extension\Controller\ResourceController::class, 'list');
@@ -25,38 +27,31 @@ API
 =========
 
 ```php
-get($url, $controller, $action)
+get($url, $controller, $action, $parameterSettings)
 ```
 
 ```php
-post($url, $controller, $action)
+post($url, $controller, $action, $parameterSettings)
 ```
 
 ```php
-put($url, $controller, $action)
+put($url, $controller, $action, $parameterSettings)
 ```
 
 ```php
-patch($url, $controller, $action)
+patch($url, $controller, $action, $parameterSettings)
 ```
 
 ```php
-delete($url, $controller, $action)
+delete($url, $controller, $action, $parameterSettings)
 ```
 
 ```php
-any($url, $controller, $action)
+any($url, $controller, $action, $parameterSettings)
 ```
 
-To allow ordering and grouping of routes all of the above methods are chainable like this:
+all of the above methods are chainable to allow easy ordering and grouping of routes.
 
-```php
-/** @var \Ondigo\ExtbaseRouter\Routing\Router $router */
-$router
-    ->get('/api/resource', \Vendor\ExtensionName\Controller\ResourceController::class, 'list')
-    ->post('/api/resource', \Vendor\ExtensionName\Controller\ResourceController::class, 'create')
-    ->put('/api/resource/:resourceId', \Vendor\ExtensionName\Controller\ResourceController::class, 'update')
-```
 
 Specifying Parameters
 ==========
@@ -74,11 +69,20 @@ In order to pass the parameter to the called action, the parameter names must ma
 
 ```php
 /**
- * @param string $resourceId
+ * @param int $resourceId
  */
 public function getAction($resourceId) {
     ...
 }
 ```
 
-Currently it's not possible to match parameters by specific patterns. Every named parameter is simply matched with `[a-zA-Z_\-0-9]+`.
+Passing `$parameterSettings` when registering a new route allows different patterns to be specified for matching. By default every named parameter is matched against `[a-zA-Z_\-0-9]+`.
+
+```php
+$router->get('/api/resource/:resourceId', $controller, $action, [
+	'resourceId' => Router::PATTERN_INTEGER
+]);
+```
+
+Patterns to match Integer and UUID values are available as constants, 
+other patterns can be passed as any regular expression capturing group. `([0-9]+x[0-9]+)` for example can be used to match values like `200x200`.
