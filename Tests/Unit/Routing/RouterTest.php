@@ -8,15 +8,17 @@ use TYPO3\CMS\Core\Tests\UnitTestCase;
 class RouterTest extends UnitTestCase {
 
     public function testBasicRouteRegistration() {
-        $routes = array(
-            array('method' => 'GET', 'route' => '/test/resource', 'action' => 'list'),
-            array('method' => 'POST', 'route' => '/test/resource', 'action' => 'post'),
-            array('method' => 'PUT', 'route' => '/test/resource', 'action' => 'put'),
-            array('method' => 'DELETE', 'route' => '/test/resource', 'action' => 'delete')
-        );
+        $routes = [
+            ['routerMethod' => 'get', 'httpMethods' => ['GET'], 'route' => '/test/resource', 'action' => 'list'],
+            ['routerMethod' => 'post', 'httpMethods' => ['POST'], 'route' => '/test/resource', 'action' => 'post'],
+            ['routerMethod' => 'put', 'httpMethods' => ['PUT'], 'route' => '/test/resource', 'action' => 'put'],
+            ['routerMethod' => 'patch', 'httpMethods' => ['PATCH'], 'route' => '/test/resource', 'action' => 'patch'],
+            ['routerMethod' => 'delete', 'httpMethods' => ['DELETE'], 'route' => '/test/resource', 'action' => 'delete'],
+            ['routerMethod' => 'any', 'httpMethods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], 'route' => '/test/resource', 'action' => 'any']
+        ];
 
         foreach ($routes as $route) {
-            $registeredRoute = $this->registerRouteAndAssertBasics($route['method'], $route['route'], $route['action']);
+            $registeredRoute = $this->registerRouteAndAssertBasics($route['routerMethod'], $route['route'], $route['action'], $route['httpMethods']);
 
             $this->assertPatternMatchesOptionalTrailingSlash($registeredRoute['pattern'], $route['route']);
             $this->assertNotRegExp($registeredRoute['pattern'], '/test/sub/resource/');
@@ -25,7 +27,7 @@ class RouterTest extends UnitTestCase {
     }
 
     public function testNamedParametersGetTransformedToCorrectRegex() {
-        $registeredRoute = $this->registerRouteAndAssertBasics('GET', '/test/resource/:resourceId', 'get');
+        $registeredRoute = $this->registerRouteAndAssertBasics('GET', '/test/resource/:resourceId', 'get', ['GET']);
 
         $this->assertPatternMatchesOptionalTrailingSlash($registeredRoute['pattern'], '/test/resource/1234');
         $this->assertNotRegExp($registeredRoute['pattern'], '/test/resource/1234/56');
@@ -33,7 +35,7 @@ class RouterTest extends UnitTestCase {
     }
 
     public function testMultipleNamedParametersGetTransformedToCorrectRegex() {
-        $registeredRoute = $this->registerRouteAndAssertBasics('GET', '/test/images/:size/:imageId', 'get');
+        $registeredRoute = $this->registerRouteAndAssertBasics('GET', '/test/images/:size/:imageId', 'get', ['GET']);
 
         $this->assertPatternMatchesOptionalTrailingSlash($registeredRoute['pattern'], '/test/images/200x200/1234');
         $this->assertNotRegExp($registeredRoute['pattern'], '/test/images/200x200');
@@ -52,19 +54,19 @@ class RouterTest extends UnitTestCase {
     }
 
     /**
-     * creates a new router object, registers a route and asserts whether the given parameters have been processed correctly
+     * creates a new router object, registers a route and asserts whether the given
+     * parameters have been processed correctly before returning the registered route
      *
-     * @param string $method the http method
+     * @param string $routerMethod the method to be called on the router
      * @param string $route the URI
      * @param string $action the controller action
+     * @param array $httpMethods
      *
      * @return array the registered route
      */
-    protected function registerRouteAndAssertBasics($method, $route, $action) {
-        $method = strtolower($method);
-
+    protected function registerRouteAndAssertBasics($routerMethod, $route, $action, $httpMethods) {
         $router = new Router();
-        $router->$method($route, FixtureController::class, $action);
+        $router->$routerMethod($route, FixtureController::class, $action);
 
         $routes = $this->getObjectAttribute($router, 'routes');
         $this->assertCount(1, $routes);
@@ -72,7 +74,7 @@ class RouterTest extends UnitTestCase {
 
         $registeredRoute = $routes[0];
 
-        $this->assertEquals(strtoupper($method), $registeredRoute['method']);
+        $this->assertArraySubset($httpMethods, $registeredRoute['methods']);
         $this->assertEquals(FixtureController::class, $registeredRoute['controller']);
         $this->assertEquals($action, $registeredRoute['action']);
 

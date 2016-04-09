@@ -18,7 +18,8 @@ $router->get('/api/resource', \Vendor\Extension\Controller\ResourceController::c
 
 All requests matching `/api/resource` with HTTP Method GET are then routed directly to `ResourceController->listAction`
 
-Currently your Controller should take care of data output and setting headers for Content-Type or Caching. 
+*At the moment your controller is required to set the appropriate headers and output all data. 
+This Router does nothing except for eliminating the overhead caused by TYPO3 when rendering a single plugin where the normal page layout isn't needed.*
 
 API
 =========
@@ -36,36 +37,40 @@ put($url, $controller, $action)
 ```
 
 ```php
+patch($url, $controller, $action)
+```
+
+```php
 delete($url, $controller, $action)
 ```
 
-To allow easy grouping of routes the methods above are chainable like this:
+```php
+any($url, $controller, $action)
+```
+
+To allow ordering and grouping of routes all of the above methods are chainable like this:
 
 ```php
 /** @var \Ondigo\ExtbaseRouter\Routing\Router $router */
 $router
     ->get('/api/resource', \Vendor\ExtensionName\Controller\ResourceController::class, 'list')
-    ->get('/api/resource/:resourceId', \Vendor\ExtensionName\Controller\ResourceController::class, 'get')
     ->post('/api/resource', \Vendor\ExtensionName\Controller\ResourceController::class, 'create')
     ->put('/api/resource/:resourceId', \Vendor\ExtensionName\Controller\ResourceController::class, 'update')
-    ->delete('/api/resource/:resourceId', \Vendor\ExtensionName\Controller\ResourceController::class, 'delete');
 ```
 
 Specifying Parameters
 ==========
 
-It's possible to specify named parameters in route registration like this:
+It's possible to specify named parameters in a route like this:
 
 ```php
 $router->get('/api/resource/:resourceId', \Vendor\ExtensionName\Controller\ResourceController::class, 'get')
 ```
-    
+
 where `:resourceId` specifies the variable part of the URL.
 
-Named parameters must:
-
-* begin with a colon `:`
-* match a parameter in the definition of the called controller action
+Named parameters are recognized by a colon `:` in the beginning. 
+In order to pass the parameter to the called action, the parameter names must match!
 
 ```php
 /**
@@ -76,4 +81,4 @@ public function getAction($resourceId) {
 }
 ```
 
-Currently it's not possible to match parameters by specific patterns. Every named parameter is simply matched with `\w+` - Allowing all word characters (letter, number, underscore)
+Currently it's not possible to match parameters by specific patterns. Every named parameter is simply matched with `[a-zA-Z_\-0-9]+`.

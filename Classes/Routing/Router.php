@@ -22,13 +22,14 @@ class Router implements SingletonInterface {
     /**
      * register a new Route for HTTP Method GET
      *
-     * @param $url
-     * @param $controller
-     * @param $action
-     * @return $this
+     * @param string $url
+     * @param string $controller
+     * @param string $action
+     *
+     * @return Router $this
      */
     public function get($url, $controller, $action) {
-        $this->register($url, 'GET', $controller, $action);
+        $this->register($url, ['GET'], $controller, $action);
 
         return $this;
     }
@@ -36,13 +37,14 @@ class Router implements SingletonInterface {
     /**
      * register a new Route for HTTP Method POST
      *
-     * @param $url
-     * @param $controller
-     * @param $action
-     * @return $this
+     * @param string $url
+     * @param string $controller
+     * @param string $action
+     *
+     * @return Router$this
      */
     public function post($url, $controller, $action) {
-        $this->register($url, 'POST', $controller, $action);
+        $this->register($url, ['POST'], $controller, $action);
 
         return $this;
     }
@@ -50,27 +52,59 @@ class Router implements SingletonInterface {
     /**
      * register a new Route for HTTP Method PUT
      *
-     * @param $url
-     * @param $controller
-     * @param $action
-     * @return $this
+     * @param string $url
+     * @param string $controller
+     * @param string $action
+     *
+     * @return Router $this
      */
     public function put($url, $controller, $action) {
-        $this->register($url, 'PUT', $controller, $action);
+        $this->register($url, ['PUT'], $controller, $action);
 
+        return $this;
+    }
+
+    /**
+     * register a new Route for HTTP Method PATCH
+     *
+     * @param string $url
+     * @param string $controller
+     * @param string $action
+     *
+     * @return Router $this
+     */
+    public function patch($url, $controller, $action) {
+        $this->register($url, ['PATCH'], $controller, $action);
+        
         return $this;
     }
 
     /**
      * register a new Route for HTTP Method DELETE
      *
-     * @param $url
-     * @param $controller
-     * @param $action
-     * @return $this
+     * @param string $url
+     * @param string $controller
+     * @param string $action
+     *
+     * @return Router $this
      */
     public function delete($url, $controller, $action) {
-        $this->register($url, 'DELETE', $controller, $action);
+        $this->register($url, ['DELETE'], $controller, $action);
+
+        return $this;
+    }
+
+    /**
+     * register a new Route for HTTP Methods GET, POST, PUT, PATCH and DELETE
+     *
+     * @param string $url
+     * @param string $controller
+     * @param string $action
+     *
+     * @return Router $this
+     */
+    public function any($url, $controller, $action) {
+        $this->register($url, ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], $controller, $action);
 
         return $this;
     }
@@ -78,16 +112,17 @@ class Router implements SingletonInterface {
     /**
      * register a new Route
      *
-     * @param $url
-     * @param $method
-     * @param $controller
-     * @param $action
-     * @return $this
+     * @param string $url
+     * @param array $methods
+     * @param string $controller
+     * @param string $action
+     * 
+     * @return Router $this
      */
-    public function register($url, $method, $controller, $action) {
+    protected function register($url, $methods, $controller, $action) {
         $this->routes[] = [
             'pattern' => $this->transform($url),
-            'method' => $method,
+            'methods' => $methods,
             'controller' => $controller,
             'action' => $action
         ];
@@ -95,12 +130,20 @@ class Router implements SingletonInterface {
         return $this;
     }
 
+    /**
+     * matches the given $requestUri against all registered routes and returns either the first match or FALSE if no match was found
+     *
+     * @param $requestUri
+     * @param $method
+     * 
+     * @return array|bool
+     */
     public function match($requestUri, $method) {
         foreach ($this->routes as $route) {
             $pattern = $route['pattern'];
 
-            preg_match($pattern, $requestUri, $parameters);
-            if (!empty($parameters) && strtoupper($route['method']) === strtoupper($method)) {
+            $matched = (bool)preg_match($pattern, $requestUri, $parameters);
+            if ($matched && in_array(strtoupper($method), $route['methods'])) {
                 foreach($parameters as $k => $v) {
                     if (is_int($k)) {
                         unset($parameters[$k]);
@@ -115,6 +158,14 @@ class Router implements SingletonInterface {
         return FALSE;
     }
 
+    /**
+     * dispatches the given route
+     *
+     * @param $route
+     * @return string
+     * @throws \TYPO3\CMS\Extbase\Mvc\Exception\InfiniteLoopException
+     * @throws \TYPO3\CMS\Extbase\Mvc\Exception\InvalidActionNameException
+     */
     public function route($route) {
         $arguments = $route['parameters'];
 
@@ -133,9 +184,6 @@ class Router implements SingletonInterface {
         $request->setArguments($arguments);
 
         $dispatcher->dispatch($request, $response);
-        $content = $response->getContent();
-
-        return $content;
     }
 
     /**
