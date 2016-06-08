@@ -1,0 +1,4 @@
+# cat=basic/enable; type=string; label=Accept-Language Header:The name of the header field from which the requested language will be read
+accept_language_header = X-Accept-Language
+# cat=basic/enable; type=string; label=Allowed Accept-Language Header values:This should be a comma separated list of languageKey=LanguageUid mappings. For example "de=0,en=2"
+accept_language_values =

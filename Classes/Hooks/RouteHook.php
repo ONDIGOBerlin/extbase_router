@@ -18,6 +18,8 @@ class RouteHook {
         $GLOBALS['TSFE']->sys_page = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Frontend\Page\PageRepository::class);
         $GLOBALS['TSFE']->sys_page->init(FALSE);
         $firstPage = $GLOBALS['TSFE']->sys_page->getFirstWebPage(0);
+        $GLOBALS['TSFE']->page = $firstPage;
+
         $rootPageUid = $firstPage ? $firstPage['uid'] : 0;
 
         if (!is_array($GLOBALS['TCA'])) {
@@ -35,6 +37,31 @@ class RouteHook {
         $GLOBALS['TSFE']->type = 0;
         $GLOBALS['TSFE']->rootLine = BackendUtility::BEgetRootLine($rootPageUid);
         $GLOBALS['TSFE']->getConfigArray();
+
+        $extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['extbase_router']);
+        $availableLanguages = [];
+
+        foreach (explode(',', $extConf['accept_language_values']) as $lang) {
+            list($key, $uid) = explode('=', $lang);
+            $availableLanguages[$key] = (int)$uid;
+        }
+
+        $headerKey = 'HTTP_' . str_replace('-', '_', strtoupper($extConf['accept_language_header']));
+        $acceptLanguageHeader = $_SERVER[$headerKey];
+        
+        $GLOBALS['TSFE']->config = \TYPO3\CMS\Extbase\Utility\ArrayUtility::arrayMergeRecursiveOverrule(
+            $GLOBALS['TSFE']->config,
+            [
+                'config' => [
+                    'sys_language_uid' => isset($availableLanguages[$acceptLanguageHeader]) ? $availableLanguages[$acceptLanguageHeader] : 0,
+                    'sys_language_mode' => 'strict',
+                    'language' => $acceptLanguageHeader ?: $GLOBALS['TSFE']->config['config']['language']
+                ]
+            ]
+        );
+
+        $GLOBALS['TSFE']->settingLanguage();
+        $GLOBALS['TSFE']->settingLocale();
     }
 
     public function attemptRouting() {

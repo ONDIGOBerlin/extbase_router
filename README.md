@@ -23,6 +23,25 @@ All requests matching `/api/resource` with HTTP Method GET are then routed direc
 *At the moment your controller is required to set the appropriate headers and output all data. 
 This Router does nothing except for eliminating the overhead caused by TYPO3 when rendering a single plugin where the normal page layout isn't needed.*
 
+Configuration
+=========
+
+The only configuration necessary is if you want to provide multiple Languages for API endpoints.
+These settings are done system wide and can not be set by another extension.
+
+To configure the supported languages, use the TYPO3 Extension Manager and set the appropriate values for the Extbase Router extension:
+
+###Accept-Language Header
+
+default: `X-Accept-Language`
+
+*With this option you can specify which Header field will be used to request a particular language. When making a Request, the value of this field should be one of the languageKeys defined in the **Supported Languages** field*
+
+###Supported Languages
+
+*This should be a comma separated list of languageKey=LanguageUid mappings. For example "de=0,en=2"*
+
+
 API
 =========
 
