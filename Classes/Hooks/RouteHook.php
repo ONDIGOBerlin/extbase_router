@@ -65,7 +65,8 @@ class RouteHook {
     }
 
     public function attemptRouting() {
-        $match = $this->router->match($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD']);
+        $requestUri = strtok($_SERVER['REQUEST_URI'],'?');
+        $match = $this->router->match($requestUri, $_SERVER['REQUEST_METHOD']);
 
         if ($match === FALSE) {
             return;
