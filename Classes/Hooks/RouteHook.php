@@ -15,16 +15,16 @@ class RouteHook {
     }
 
     public function setup() {
+        if (!is_array($GLOBALS['TCA'])) {
+            \TYPO3\CMS\Core\Core\Bootstrap::getInstance()->loadCachedTca();
+        }
+
         $GLOBALS['TSFE']->sys_page = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Frontend\Page\PageRepository::class);
         $GLOBALS['TSFE']->sys_page->init(FALSE);
         $firstPage = $GLOBALS['TSFE']->sys_page->getFirstWebPage(0);
         $GLOBALS['TSFE']->page = $firstPage;
 
         $rootPageUid = $firstPage ? $firstPage['uid'] : 0;
-
-        if (!is_array($GLOBALS['TCA'])) {
-            \TYPO3\CMS\Core\Core\Bootstrap::getInstance()->loadCachedTca();
-        }
 
         /** @var \TYPO3\CMS\Extbase\Configuration\FrontendConfigurationManager $configurationManager */
         $configurationManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Extbase\Configuration\FrontendConfigurationManager::class);
