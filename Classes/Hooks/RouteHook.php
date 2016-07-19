@@ -54,7 +54,6 @@ class RouteHook {
             [
                 'config' => [
                     'sys_language_uid' => isset($availableLanguages[$acceptLanguageHeader]) ? $availableLanguages[$acceptLanguageHeader] : 0,
-                    'sys_language_mode' => 'strict',
                     'language' => $acceptLanguageHeader ?: $GLOBALS['TSFE']->config['config']['language']
                 ]
             ]
