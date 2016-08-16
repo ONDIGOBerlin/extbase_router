@@ -35,6 +35,7 @@ class RouteHook {
         $GLOBALS['TSFE']->initTemplate();
         $GLOBALS['TSFE']->id = $rootPageUid;
         $GLOBALS['TSFE']->type = 0;
+        $GLOBALS['TSFE']->absRefPrefix = '/';
         $GLOBALS['TSFE']->rootLine = BackendUtility::BEgetRootLine($rootPageUid);
         $GLOBALS['TSFE']->getConfigArray();
 
