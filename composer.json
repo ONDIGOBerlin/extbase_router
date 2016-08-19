@@ -3,7 +3,7 @@
     "description": "Extbase extension to route requests directly to controller actions",
     "type": "typo3-cms-extension",
     "license": "GPLv3",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "keywords": ["php", "typo3", "extbase", "routing"],
     "authors": [
         {
