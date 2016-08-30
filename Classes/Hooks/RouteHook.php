@@ -2,6 +2,7 @@
 namespace Ondigo\ExtbaseRouter\Hooks;
 
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class RouteHook {
 
@@ -24,7 +25,8 @@ class RouteHook {
         $firstPage = $GLOBALS['TSFE']->sys_page->getFirstWebPage(0);
         $GLOBALS['TSFE']->page = $firstPage;
 
-        $rootPageUid = $firstPage ? $firstPage['uid'] : 0;
+        $rootPageUid = $firstPage ? $firstPage['uid'] : 1;
+        $typeNum = 0;
 
         /** @var \TYPO3\CMS\Extbase\Configuration\FrontendConfigurationManager $configurationManager */
         $configurationManager = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(\TYPO3\CMS\Extbase\Configuration\FrontendConfigurationManager::class);
@@ -32,12 +34,17 @@ class RouteHook {
             new \TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer()
         );
 
+        if (!is_object($GLOBALS['TT'])) {
+            $GLOBALS['TT'] = new \TYPO3\CMS\Core\TimeTracker\NullTimeTracker;
+            $GLOBALS['TT']->start();
+        }
+
+        $GLOBALS['TSFE'] = GeneralUtility::makeInstance('TYPO3\\CMS\\Frontend\\Controller\\TypoScriptFrontendController', $GLOBALS['TYPO3_CONF_VARS'], $rootPageUid, $typeNum);
+        $GLOBALS['TSFE']->initFEuser();
+        $GLOBALS['TSFE']->determineId();
         $GLOBALS['TSFE']->initTemplate();
-        $GLOBALS['TSFE']->id = $rootPageUid;
-        $GLOBALS['TSFE']->type = 0;
-        $GLOBALS['TSFE']->absRefPrefix = '/';
-        $GLOBALS['TSFE']->rootLine = BackendUtility::BEgetRootLine($rootPageUid);
         $GLOBALS['TSFE']->getConfigArray();
+        $GLOBALS['TSFE']->absRefPrefix = '/';
 
         $extConf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['extbase_router']);
         $availableLanguages = [];
@@ -49,17 +56,22 @@ class RouteHook {
 
         $headerKey = 'HTTP_' . str_replace('-', '_', strtoupper($extConf['accept_language_header']));
         $acceptLanguageHeader = $_SERVER[$headerKey];
-        
+
+        $sys_language_uid = isset($availableLanguages[$acceptLanguageHeader]) ? $availableLanguages[$acceptLanguageHeader] : 0;
+        $GLOBALS['TSFE']->sys_language_uid = $sys_language_uid;
+
         $GLOBALS['TSFE']->config = \TYPO3\CMS\Extbase\Utility\ArrayUtility::arrayMergeRecursiveOverrule(
             $GLOBALS['TSFE']->config,
             [
                 'config' => [
                     'sys_language_uid' => isset($availableLanguages[$acceptLanguageHeader]) ? $availableLanguages[$acceptLanguageHeader] : 0,
-                    'language' => $acceptLanguageHeader ?: $GLOBALS['TSFE']->config['config']['language']
+                    'language' => $acceptLanguageHeader ?: $GLOBALS['TSFE']->config['config']['language'],
+                    'linkVars' => 'L(int)'
                 ]
             ]
         );
 
+        $GLOBALS['TSFE']->linkVars .= '&L=' . $sys_language_uid;
         $GLOBALS['TSFE']->settingLanguage();
         $GLOBALS['TSFE']->settingLocale();
     }
